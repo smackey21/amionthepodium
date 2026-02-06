@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Am I On the Podium?</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: linear-gradient(165deg, #0081C8 0%, #0066a1 12%, #0a2463 30%, #16213e 55%, #0f3460 80%, #0d0d0d 100%);
+      background-attachment: fixed;
+      color: #eee;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 20%, rgba(252, 177, 49, 0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .rings {
+      width: 120px;
+      height: 56px;
+      margin: 0 auto 1rem;
+    }
+
+    .rings svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      font-weight: 700;
+      margin: 0 0 0.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #a0aec0;
+      margin-bottom: 2rem;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .buttons button {
+      padding: 0.85rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      transition: background 0.2s, transform 0.1s;
+      text-align: center;
+    }
+
+    .buttons button:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .buttons button:active {
+      transform: scale(0.98);
+    }
+
+    .result {
+      min-height: 140px;
+      padding: 1.5rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .result.visible {
+      display: block;
+    }
+
+    .medal {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+
+    .medal-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .medal.gold .medal-label { color: #f6e05e; }
+    .medal.silver .medal-label { color: #c0c0c0; }
+    .medal.bronze .medal-label { color: #cd7f32; }
+
+    .explanation {
+      font-size: 0.9rem;
+      color: #a0aec0;
+      line-height: 1.45;
+      font-style: italic;
+    }
+
+    .reset-btn {
+      padding: 0.6rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: transparent;
+      color: #a0aec0;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .reset-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+    }
+
+    .share-url {
+      display: none;
+      margin-top: 1rem;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+
+    .share-url.visible {
+      display: flex;
+    }
+
+    .share-url input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-family: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.2);
+      color: #e2e8f0;
+    }
+
+    .share-url button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #a0aec0;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .share-url button:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="rings" aria-hidden="true">
+      <svg viewBox="0 0 120 56" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="12" fill="none" stroke="#0081C8" stroke-width="4"/>
+        <circle cx="60" cy="20" r="12" fill="none" stroke="#000" stroke-width="4"/>
+        <circle cx="100" cy="20" r="12" fill="none" stroke="#EE334E" stroke-width="4"/>
+        <circle cx="40" cy="36" r="12" fill="none" stroke="#FCB131" stroke-width="4"/>
+        <circle cx="80" cy="36" r="12" fill="none" stroke="#00A651" stroke-width="4"/>
+      </svg>
+    </div>
+    <h1>Am I On the Podium?</h1>
+    <p class="subtitle">Describe your day. I'll assign you a medal.</p>
+
+    <div class="buttons">
+      <button type="button" data-medal="gold" data-choice="didnt-quit">Didn't quit</button>
+      <button type="button" data-medal="gold" data-choice="moved-my-mouse">Moved my mouse</button>
+      <button type="button" data-medal="silver" data-choice="tried">Tried</button>
+      <button type="button" data-medal="silver" data-choice="vibes-weird">Tried but vibes were weird</button>
+      <button type="button" data-medal="bronze" data-choice="crushed">Crushed</button>
+    </div>
+
+    <div class="result" id="result" aria-live="polite">
+      <div class="medal" id="medalEl">
+        <span class="medal-label" id="medalLabel"></span>
+        <p class="explanation" id="explanation"></p>
+      </div>
+      <div class="share-url" id="shareUrl">
+        <input type="url" id="shareUrlInput" readonly aria-label="Share link">
+        <button type="button" id="copyUrlBtn">Copy link</button>
+      </div>
+    </div>
+
+    <button type="button" class="reset-btn" id="resetBtn">Reset</button>
+  </div>
+
+  <script>
+    const medals = {
+      gold: {
+        emoji: '🥇',
+        label: 'Gold',
+        explanations: [
+          "Back to you, Mike. This competitor didn't quit—and neither did Michael Phelps when he was told he had ADHD and couldn't sit still. Twenty-eight medals later. Our subject grew up in a town with one stoplight and a library that closed on Wednesdays. They showed up anyway. Gold.",
+          "Tirico here. We've got a package. Much like Simone Biles landing the vault after everything in Tokyo—she came back. So did they—they showed up. Our research team found they once finished a group project after both partners moved to different time zones. The spirit is real. Gold.",
+          "As we've been saying all week—the real victory is showing up. Simone Biles came back. So did they. Shaun White didn't quit after that fall in PyeongChang. Our subject didn't quit after their goldfish died and their keyboard had a sticky key. We'll have more on the goldfish, Bubbles, after the break. Gold.",
+          "NBC exclusive: they didn't quit. Shaun White came back for one more run at 35. Our subject didn't quit. The podium agrees. Gold."
+        ],
+        choices: {
+          "moved-my-mouse": [
+            "Back to you, Mike. They moved the mouse. Usain Bolt moved his feet—same principle. Our research team found their trackpad once survived a spilled coffee in 2019. The parallels are undeniable. Gold.",
+            "Tirico here. We've got a package. Much like Michael Phelps showing up for that 4 a.m. practice, this competitor moved their mouse. One bar of Wi‑Fi. Their third-grade teacher, Mrs. Gable, once wrote \"persistent\" on a report card. Gold medal.",
+            "NBC exclusive: they moved the mouse. Simone Biles came back. So did the cursor. Our commentator will now explain for eight minutes how this person's wireless mouse made it through a Tuesday. Battery at 3%. The spirit is real. Gold.",
+            "They moved it. Mia Hamm moved the ball. Alex Morgan moved into space. Our subject moved the mouse. We're cutting to a 12-minute feature on their desk setup and a town in Norway you've never heard of. Gold."
+          ]
+        }
+      },
+      silver: {
+        emoji: '🥈',
+        label: 'Silver',
+        explanations: [
+          "They tried—and that's okay. So did Alex Morgan in 2012. Our competitor's grandmother, who we'll feature in a 12-minute segment, always said \"almost\" was a full sentence. The vibes were weird. Silver. We'll be right back.",
+          "NBC's cameras caught the moment. Shaun White came back for one more run at 35. Our subject came back after their neighbor's dog barked during a crucial moment. We'll replay it six times with a voiceover about a childhood goldfish named Bubbles. Silver. Incredible.",
+          "Second place. Mia Hamm knows the feeling—legendary career, still had days that didn't go to plan. Our commentator will now explain for eight minutes how this person once drank from the same water fountain as a silver medalist. The vibes were weird. Silver.",
+          "Simone Biles had the twisties. Then she had to do it again. Our subject had a Monday. Then a Tuesday. Our research team found their hometown had exactly one diner and it was always out of pie. The resilience. Silver."
+        ],
+        choices: {
+          "tried": [
+            "They tried. Back to you, Mike. Michael Phelps tried every stroke in the book. Our subject tried. Their grandmother, who we'll feature in a 12-minute segment after the break, always said trying was the point. Silver.",
+            "Tirico here. Alex Morgan tried—World Cup glory, Olympic silver. \"Almost\" is a full sentence. Our competitor tried. We're now going to a package on their high school's one motivational poster and how it shaped their journey. Silver. We'll be right back.",
+            "NBC's cameras caught the moment they tried. Mia Hamm tried for 17 years. Usain Bolt tried in 2004 before he was Bolt. Our subject tried today. We'll replay it six times with a voiceover about a goldfish named Bubbles. Silver. Incredible.",
+            "They tried. Simone Biles tried again after Tokyo. Shaun White tried one more run at 35. Our research team found they once tried to fix the Wi‑Fi themselves. The router is still in the closet. The resilience. Silver."
+          ]
+        }
+      },
+      bronze: {
+        emoji: '🥉',
+        label: 'Bronze',
+        explanations: [
+          "They crushed it. Bronze. Usain Bolt has bronze from 2004—before he was Bolt. Our subject has today. We're now going to a 10-minute piece on their kindergarten recital and a town in Norway you've never heard of. The connection is undeniable. Bronze. What a moment.",
+          "Back to the studio. They crushed. Michael Phelps has 28 medals—a few are bronze. Our competitor has one bronze and the moral high ground. NBC has exclusive footage of their hometown's only traffic light. How it shaped their journey—after this.",
+          "Tirico: They crushed it. Bronze medal. Much like Shaun White in his early Games—before the double cork, before the legend—they showed up and left nothing in the tank. Remarkable.",
+          "They crushed. Bronze. As with every great third-place finish, we're cutting to a feature on their second cousin who once saw Mia Hamm at an airport. The backstory writes itself. Bronze. We'll have more after this."
+        ]
+      }
+    };
+
+    const resultEl = document.getElementById('result');
+    const medalEl = document.getElementById('medalEl');
+    const medalLabel = document.getElementById('medalLabel');
+    const explanationEl = document.getElementById('explanation');
+    const resetBtn = document.getElementById('resetBtn');
+    const shareUrlEl = document.getElementById('shareUrl');
+    const shareUrlInput = document.getElementById('shareUrlInput');
+    const copyUrlBtn = document.getElementById('copyUrlBtn');
+
+    function getExplanationList(medalKey, choiceKey) {
+      const medal = medals[medalKey];
+      return medal.choices && medal.choices[choiceKey] ? medal.choices[choiceKey] : medal.explanations;
+    }
+
+    function getShareUrl(medalKey, choiceKey, explanationIndex) {
+      const params = new URLSearchParams();
+      params.set('medal', medalKey);
+      params.set('choice', choiceKey);
+      params.set('e', String(explanationIndex));
+      return location.origin + location.pathname + '?' + params.toString();
+    }
+
+    function showResult(medalKey, choiceKey, explanationIndex) {
+      const medal = medals[medalKey];
+      const list = getExplanationList(medalKey, choiceKey);
+      const idx = explanationIndex != null && explanationIndex >= 0 && explanationIndex < list.length
+        ? explanationIndex
+        : Math.floor(Math.random() * list.length);
+      const text = list[idx];
+
+      medalEl.className = 'medal ' + medalKey;
+      medalLabel.textContent = medal.emoji + ' ' + medal.label;
+      explanationEl.textContent = text;
+      resultEl.classList.add('visible');
+
+      const shareLink = getShareUrl(medalKey, choiceKey, idx);
+      shareUrlInput.value = shareLink;
+      shareUrlEl.classList.add('visible');
+
+      const params = new URLSearchParams(location.search);
+      params.set('medal', medalKey);
+      params.set('choice', choiceKey);
+      params.set('e', String(idx));
+      history.replaceState(null, '', location.pathname + '?' + params.toString());
+    }
+
+    function hideResult() {
+      resultEl.classList.remove('visible');
+      shareUrlEl.classList.remove('visible');
+      shareUrlInput.value = '';
+      history.replaceState(null, '', location.pathname);
+    }
+
+    function initFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const medalKey = params.get('medal');
+      const choiceKey = params.get('choice') || '';
+      const e = params.get('e');
+
+      if (!medalKey || !medals[medalKey]) return;
+      const list = getExplanationList(medalKey, choiceKey);
+      const idx = e != null ? parseInt(e, 10) : null;
+      if (idx != null && (idx < 0 || idx >= list.length)) return;
+
+      showResult(medalKey, choiceKey, idx);
+    }
+
+    document.querySelectorAll('.buttons button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        showResult(btn.getAttribute('data-medal'), btn.getAttribute('data-choice'));
+      });
+    });
+
+    resetBtn.addEventListener('click', hideResult);
+
+    copyUrlBtn.addEventListener('click', () => {
+      shareUrlInput.select();
+      shareUrlInput.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(shareUrlInput.value).then(() => {
+        copyUrlBtn.textContent = 'Copied!';
+        setTimeout(() => { copyUrlBtn.textContent = 'Copy link'; }, 2000);
+      });
+    });
+
+    initFromUrl();
+  </script>
+</body>
+</html>
