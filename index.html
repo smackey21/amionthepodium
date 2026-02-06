@@ -144,46 +144,6 @@
       background: rgba(255, 255, 255, 0.08);
       color: #e2e8f0;
     }
-
-    .share-url {
-      display: none;
-      margin-top: 1rem;
-      gap: 0.5rem;
-      align-items: stretch;
-    }
-
-    .share-url.visible {
-      display: flex;
-    }
-
-    .share-url input {
-      flex: 1;
-      min-width: 0;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.8rem;
-      font-family: inherit;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      background: rgba(0, 0, 0, 0.2);
-      color: #e2e8f0;
-    }
-
-    .share-url button {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.8rem;
-      font-weight: 500;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      color: #a0aec0;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .share-url button:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #e2e8f0;
-    }
   </style>
 </head>
 <body>
@@ -212,10 +172,6 @@
       <div class="medal" id="medalEl">
         <span class="medal-label" id="medalLabel"></span>
         <p class="explanation" id="explanation"></p>
-      </div>
-      <div class="share-url" id="shareUrl">
-        <input type="url" id="shareUrlInput" readonly aria-label="Share link">
-        <button type="button" id="copyUrlBtn">Copy link</button>
       </div>
     </div>
 
@@ -277,66 +233,19 @@
     const medalLabel = document.getElementById('medalLabel');
     const explanationEl = document.getElementById('explanation');
     const resetBtn = document.getElementById('resetBtn');
-    const shareUrlEl = document.getElementById('shareUrl');
-    const shareUrlInput = document.getElementById('shareUrlInput');
-    const copyUrlBtn = document.getElementById('copyUrlBtn');
 
-    function getExplanationList(medalKey, choiceKey) {
+    function pickExplanation(medalKey, choiceKey) {
       const medal = medals[medalKey];
-      return medal.choices && medal.choices[choiceKey] ? medal.choices[choiceKey] : medal.explanations;
+      const list = medal.choices && medal.choices[choiceKey] ? medal.choices[choiceKey] : medal.explanations;
+      return list[Math.floor(Math.random() * list.length)];
     }
 
-    function getShareUrl(medalKey, choiceKey, explanationIndex) {
-      const params = new URLSearchParams();
-      params.set('medal', medalKey);
-      params.set('choice', choiceKey);
-      params.set('e', String(explanationIndex));
-      return location.origin + location.pathname + '?' + params.toString();
-    }
-
-    function showResult(medalKey, choiceKey, explanationIndex) {
+    function showResult(medalKey, choiceKey) {
       const medal = medals[medalKey];
-      const list = getExplanationList(medalKey, choiceKey);
-      const idx = explanationIndex != null && explanationIndex >= 0 && explanationIndex < list.length
-        ? explanationIndex
-        : Math.floor(Math.random() * list.length);
-      const text = list[idx];
-
       medalEl.className = 'medal ' + medalKey;
       medalLabel.textContent = medal.emoji + ' ' + medal.label;
-      explanationEl.textContent = text;
+      explanationEl.textContent = pickExplanation(medalKey, choiceKey);
       resultEl.classList.add('visible');
-
-      const shareLink = getShareUrl(medalKey, choiceKey, idx);
-      shareUrlInput.value = shareLink;
-      shareUrlEl.classList.add('visible');
-
-      const params = new URLSearchParams(location.search);
-      params.set('medal', medalKey);
-      params.set('choice', choiceKey);
-      params.set('e', String(idx));
-      history.replaceState(null, '', location.pathname + '?' + params.toString());
-    }
-
-    function hideResult() {
-      resultEl.classList.remove('visible');
-      shareUrlEl.classList.remove('visible');
-      shareUrlInput.value = '';
-      history.replaceState(null, '', location.pathname);
-    }
-
-    function initFromUrl() {
-      const params = new URLSearchParams(location.search);
-      const medalKey = params.get('medal');
-      const choiceKey = params.get('choice') || '';
-      const e = params.get('e');
-
-      if (!medalKey || !medals[medalKey]) return;
-      const list = getExplanationList(medalKey, choiceKey);
-      const idx = e != null ? parseInt(e, 10) : null;
-      if (idx != null && (idx < 0 || idx >= list.length)) return;
-
-      showResult(medalKey, choiceKey, idx);
     }
 
     document.querySelectorAll('.buttons button').forEach(btn => {
@@ -345,18 +254,9 @@
       });
     });
 
-    resetBtn.addEventListener('click', hideResult);
-
-    copyUrlBtn.addEventListener('click', () => {
-      shareUrlInput.select();
-      shareUrlInput.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(shareUrlInput.value).then(() => {
-        copyUrlBtn.textContent = 'Copied!';
-        setTimeout(() => { copyUrlBtn.textContent = 'Copy link'; }, 2000);
-      });
+    resetBtn.addEventListener('click', () => {
+      resultEl.classList.remove('visible');
     });
-
-    initFromUrl();
   </script>
 </body>
 </html>
